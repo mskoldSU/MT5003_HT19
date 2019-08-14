@@ -1,0 +1,24 @@
+---
+title: "Computer assignment instructions"
+author: "Martin Sköld"
+output: html_document
+---
+### Independence and plagiarism
+
+The assignments should be solved **independently**. While it is allowed to *discuss* problems and solutions with other students, any text and R code in the report should be your own or the source clearly acknowledged. Suspected cases of plagiarism or sharing of code/text will be reported to the university disciplinary committee. If you are unsure about what is allowed, ask your teachers.
+
+
+### Tools
+
+The purpose of the assignments is to train implementing methods in statistical software, not finding the easiest way to a numerical result. With the exception of librarys neccessary for writing the report (`rmarkdown` & co) you are only allowed to use functionality within the standard libraries `base` and `stats`. Functionality from libraries like `boot`, `ProfileLikelihood` or `mcmc` may not be used. If unsure, ask your teacher.
+
+
+### Reports
+
+The reports should be written in R Markdown and compiled to a pdf for submission on the course webpage. Any numerical results should be dynamically generated when compiling the report, not copied from the console window. Code should be visible in the report (i.e. the default `echo = TRUE` chunk option) with commenting where appropriate. Try to be consistent in your coding and follow e.g. [the Tidyverse style guide](https://style.tidyverse.org/) for more readable code.
+
+
+### Submission and corrections
+
+The parts of the assignment should be submitted before their respective deadline. If you miss a deadline, you will have to submit to a possibly different assignment the next opportunity for examination. Reports submitted before dealine will be graded on a scale G/Ux/U, where G is pass, Ux is fail with the opportunity to submit corrections and U is fail. 
+

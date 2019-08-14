@@ -1,0 +1,84 @@
+---
+title: "Additional excersises in Statistical inference"
+author: "Martin Sköld"
+date: "`r format(Sys.time(), '%d %B, %Y')`"
+output: html_document
+---
+
+
+Distributions are parametrised as in Held & Bové, Appendix A5.
+
+---
+
+1. Derive score-function and observed Fisherinformation for
+    + $\theta$ when $X\sim Geom(\theta)$.
+    + $\psi=\theta^2$  when $X\sim Geom(\theta)$.
+    + $\theta$ when $X=(X_1,\ldots,X_n)$ and $X_i\sim LN(\theta,1)$ are independent.
+    + $\theta$ when $X=(X_1,\ldots,X_n)$ and $X_i\sim N(\theta i,1)$ are independent.
+
+---    
+
+2. The number of bacteria in a culture day $i$ can be described by a stochastic variable  $X_i\sim Poisson(\lambda i)$. A lab independently prepares five cultures in  dishes. Each day, the number of bacteria in one of the dishes is counted, destroying the culture. Hence, after five days, we have observed $x_1,\ldots,x_5$ where $x_i$ is a realisation of $X_i$. 
+    + Formulate a statistical model and derive a (one dimensional) sufficient statistic for $\lambda$.
+    + An alternative strategy would be to count all cultures on the last day, whence $x_1,\ldots,x_5$ are i.i.d. $Poisson(5\lambda)$. Compare the two strategies in terms of their expected Fisher information.
+    
+---
+    
+3. In a linear model, $\mathbf{Y}=\mathbf{A\theta}+\mathbf{\epsilon}$, where $\mathbf{Y}=(Y_1,\ldots,Y_N)^T$, $\mathbf{\theta}=(\theta_1\ldots\theta_k)^T$, $\mathbf{A}$ is a known $N\times k$-matrix and $\mathbf{\epsilon}$ a column vector of independent $N(0,1)$. Show that the Fisher information matrix (observed and expected) equals $I(\theta)=J(\theta)=\mathbf{A}^T\mathbf{A}$.
+
+---
+
+4. Let $x_1,\ldots,x_n$ denote measurements of length (unit $mm$) that may be assumed independent observations of $X$ with density $f_X(\cdot|\theta)$ and $y_1,\ldots,y_n$ the same measurements converted to unit $m$, i.e. $y_i=x_i/1000$. Derive the ratio of likelihoods $L_X(\theta|x)/L_Y(\theta|y)$.
+
+---
+
+5. In 1986, space shuttle Challenger exploded during take off. The accident may have been caused by a broken o-ring, that broke due to the cold weather during take off. Here we will model the probability of o-ring failure as a function of temperature using logistic regression and use Bootstrap to quantify uncertainty.
+
+
+Data is available as `orings` after loading the library `faraway` (install using `install.packages("faraway")`):
+```{r, warning = FALSE}
+library(faraway)
+head(orings)
+```
+here `temp` is temperature at take off and `damage` the number of failed o-rings out of a total 6. In the logistic regression model we assume the number of failures at take off $i$ to be Binomially distributed, $Y_i\sim Bin(6, \pi(t_i))$, where $\text{logit}(\pi(t_i))=\alpha+\beta t_i$ and $t_i$ is temperature. We can easily fit the model in R using
+```{r}
+model <- glm(cbind(damage, 6 - damage) ~ temp, family = binomial, data = orings)
+```
+and the ML-estimates of $\theta=(\alpha,\beta)$ are given by
+```{r}
+model$coeff
+```
+Derive a standard error for $\hat{\alpha}$ and a 95% confidence interval for $\beta$ based on the Boostrap. New observations from the fitted model can be simulated by `rbinom(23, size = 6, prob = modell$fitted)`.
+
+---
+
+6. Assume we have independent observations $X_1,\ldots,X_n$ from an $Exp(\theta)$-distribution ($E_\theta(X_i)=1/\theta$) and want to estimate $\phi=P_{\theta}(X_1>1)$. Derive the asymptotic distribution of the plug-in estimator $\hat{\phi}=P_{\hat{\theta}}(X_1>1)$, where $\hat{\theta}$ is the ML-estimator.
+
+---
+
+7. Use the result in 6 to derive an asymptotic pivot $(\hat{\phi}-\phi)/se(\hat{\phi})$ and compute a $P$-value for the hypothesis $H_0:\phi=1/2$ against $H_1:\phi\neq 1/2$ given that $\hat{\phi}=0.4$ and $n=100$.
+
+---
+
+8. Based on independent observations $x_1,\ldots,x_{100}$ from $N(\theta,\sigma^2)$  we get the 95% confidence interval $(0.1,0.3)$ for $\theta$ based on the $t$-static (see (3.9) on page 60 of Held & Bové). Compute the $P$-value for a $t$-test of $H_0:\theta=0$.
+
+---
+
+9. Plot a confidence region for $(\alpha,\beta)$ based on the Score-statistic in the Weibull-model for AC-data (compare with the Wald and Likelihood ratio regions in lecture slides).
+
+---
+
+10. Assume that $x$ is a realisation of $X\sim Bin(10,\theta)$. Derive bias, variance and medelkvadratfel för följande skattare; $\hat{\theta}_1=x/10$, $\hat{\theta}_2=(x/10+1/2)/2$ and $\hat{\theta}_3=1/2$. Also plot the MSE as function of $\theta$ for all estimators in the same figure.
+
+---
+
+11. In the example with life-lengths from the first lecture, we assumed data consisted of a fixed number of exponentially distributed times between failures. If we instead assume that failures follow a Poisson process recorded for 2500 hours, we may view the number of failures $n=28$ as a realisation of $N\sim Poisson(2500\theta)$. Plot den relative likelihood function for both models in the same figure. Under what circumstances are they approximately equal? Data (times between failures) are
+```{r}
+ac <- c(90, 10, 60, 186, 61, 49, 14, 24, 56, 20, 79, 84, 44, 59, 29, 118, 25, 156, 310, 76, 26, 44, 23, 62, 130, 208, 70, 101)
+```
+
+---
+
+12. (continuation of 11) Yet another way to model failures is to consider observations $(\tau_1,\ldots, \tau_{28})$, where $\tau_i=t_1+\ldots+t_i$ is the time of the $i$:th failure (in R `tau <- cumsum(ac)`). Derive the likelihood function and confirm that it is proportional to the exponential likelihood.
+
+---

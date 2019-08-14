@@ -1,0 +1,77 @@
+---
+title: "Learning goals, grading criteria and examination for the course Statistical inference (MT5003), HT19."
+author: "Martin Sköld"
+date: "`r format(Sys.time(), '%d %B, %Y')`"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+The course treats the foundations of statistical inference, from a frequentist as well as Bayesian perspective. Topics include likelihood theory, sufficiency, information, asymptotics and Bootstrap applied to methods for point estimation, interval estimation and tests of hypothesises. The course also considers implementation of derived methods in statistical software.
+
+
+## Learning goals
+
+After the course, the student will be able to: 
+
+1. define concepts and derive results in statistical inference
+
+2.	derive likelihood based methods for point estimation, interval estimation and tests of hypothesises
+
+3.	derive and interpret Bayesian  posterior distributions in basic situations
+
+4.	implement the methods in statistical software and interpret the results
+
+
+The course is examined by a computer assignment in three parts (1,5 jp, G/U, goal 4) and a written exam (5 hp, A-F, goal 1-3).
+
+## Grading criteria computer assignment:
+
+***
+
+**G** (Pass): The student can independently implement the course methods in their baisc form using software R, correctly interpret results in a written assignment within a given timeframe.
+
+
+**U** (Fail): The criteria for G (Pass) are not met.
+
+***
+
+The computer assigment consists of three parts with separate deadlines and should be solved individually. Each part is graded as G/Ux/U, in order to pass the assignment grade G is required on all parts. At grade Ux, the student may correct misstakes and receive G within the course timeframe. At grade U or a missed deadline, the student will have to wait until the next opportunity for examination.
+
+
+
+## Grading criteria written exam
+
+***
+
+**A**: The student masters the course concepts and results, and shows excellent ability to solve standard as well as more advanced problems related to the learning goals.
+
+
+**B**: The student masters most of the course concepts and results, and shows good ability to solve standard as well as more advanced problems related to the learning goals.
+
+
+**C**: The student masters most of the course concepts and results, and shows good ability to solve standard as well as some ability to solve more advanced problems related to the learning goals.
+
+
+**D**: The student masters the most central of the course concepts and results, can solve standard problems related to the learning goals as well as showing some ability to solve more advanced problems related to the learning goals.
+
+**E**: The student masters the most central of the course concepts and results, and can solve standard problems related to the learning goals
+
+**F**: The student does not fulfill the criteria of grade E.
+
+***
+
+
+
+The written exam is divided into two parts. The first considers the most central of the course concepts and related standard problems. The second part consists of problems that requires a higher level of understanding, the ability to generalise and combine methods. Each part consists of three problems worth a maximum of 10 points. In order to receive grades A-E, a minimum of 20 points is required in the first part. The second part is only graded for students passing the first. Given a minimum of 20 points on the first part, the course grade is based on the result of the second part according to the following table:
+
+Grade | Points on part 2
+------|------
+A | 25-30
+B | 19-24 
+C | 13-18 
+D | 7-12 
+E | 0-6
+

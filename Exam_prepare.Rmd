@@ -1,0 +1,72 @@
+---
+title: "Central concepts and results"
+output: html_document
+---
+
+The first part of the written exam tests the grading criteria for grade E, that is **The student masters the most central of the course concepts and results, and can solve standard problems related to the learning goals.** Below, you will find the most central concepts and results, together with related sample problems. Unless otherwise stated, the sample problems relates to the situation where we have observed $x_1,\ldots,x_n$, independent realisations from $Exponential(\theta_0)$, $\theta_0>0$.
+
+* Statistical model (define, formulate for a given problem)
+    + Formulate the problem as a statistical model indexed by parameter $\theta$, clearly describing the sample and parameter speces.
+
+* (log-) likelihood function relative (log-) likelihood function (define, derive given model and data)
+    + Define the concept **relative likelihood**. Derive the likelihood function.
+
+
+* Score function (define, derive given model and data, derive basic non-asymptotic frequentist properties).
+    + Show that, given the Fisher regularity conditions, $E_\theta(S(\theta))=0$.
+
+
+* Fisher regularity conditions (define, decide whether they are fulfilled in simple situations)
+    + Show that the Fisher regularity conditions are fulfilled.
+
+* Observed and expected Fisher information (define, derive given model and data, derive basic non-asymptotic frequentist properties).
+    + Show that for i.i.d. data, $J_{1:n}(\theta)=nJ_1(\theta)$.
+
+* ML-estimator (define, derive given model and data)
+    + Derive the ML-estimator.
+
+
+* ML asymptotics (describe, derive given model)
+    + Derive the asymptotic distribution of the ML-estimator.
+    
+* Delta-method (describer, apply)
+    + Derive the asymptotic distribution for $\exp(\hat{\theta})$, where $\hat{\theta}$ is the ML-estimator.
+
+* Sufficiency (define, exemplify, use the factorisation criteria to derive or determine whether a statistic is sufficient)
+    + Derive an one-dimensional sufficient statistic for $\theta$.
+
+* Consistency (define, exemplify, apply the law of large numbers/continuous mapping theorem to determine in simple situations)
+  + Show that $\hat{\theta}=1/\bar{x}$ is a consistent estimator of $\theta_0$ (without refering to general results for the ML-estimator)
+
+* Unbiasedness/bias (define, exemplify, determine/derive)
+    + Give an example of an estimator that is consistent but not unbiased.
+
+* Bootstrap (exemplify, describe algorithm in a particular situation)
+  + Describe how to approximate the bias of $\hat{\theta}=1/\bar{x}$ using the Bootstrap, you may assume acces to statistical software that can generate rendom numbers from the exponential distribution.
+
+* Pivot (define, exemplify, apply in the construction of confidence intervals)
+    + Show that $\theta\bar{x}$ is a pivot, describe how this can be used to constuct a 95% confidence interval (without refering to asymptotic results)
+
+* Hypothesis test, simple/composite hypothesis, $P$-value and power (define, exemplify, apply)
+    + Given two tests $A$ and $B$ of the hypothesis $H_0:\theta=\theta_0$ against alternative $H_1:\theta=\theta_1$ with the same significance level, describe the meaning of $A$ having higher power than $B$.
+
+
+
+* Confidence interval (define, exemplify, derive)
+    + Define the meaninng of a confidence interval for $\theta_0$ with confidence level $(1-\alpha)$.
+
+* Score-, Wald- and likelihood ratio statistic (define, exemplify, apply for the construction of tests and intervals)
+    + Derive the likelihood ratio statistic for $H_0:\theta_0=1$ and test the hypothesis given that $n=100$ and $\sum_{i=1}^n x_i=112$ at level $0.05$. You may assume asymptotic results to be valid with good accuracy.
+    + Derive a 95% Wald interval for $\theta_0$ when $n=100$ and $\sum_{i=1}^n x_i=112$.
+
+* Prior and posterior distribution (define, exemplify, derive posterior given prior and likelihood in simple situations)
+    + Derive the posterior distribution given Jeffrey's prior.
+
+
+* Conjugate family of priors (define, esemplify, derive)
+    + Define the concept of conjugacy and show that the family of Gamma distributions is conjugate for the exponential model.
+
+    
+* Jeffrey's prior (define, derive)
+
+

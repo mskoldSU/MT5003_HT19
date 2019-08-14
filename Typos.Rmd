@@ -1,0 +1,31 @@
+---
+title: "Errata for Held & Bové"
+author: "Martin Sköld"
+date: "17 december 2015"
+output: html_document
+---
+
+The following errata is in addition to the one found on [the textbook website](http://www.biostat.uzh.ch/index.php?id=asi).
+
+* p 16, l -3: Parameter space $\Theta$ should not depend on $x$ (though clearly $x$ tell us that this is the subset of interest).
+
+* p 43, proof of Result 2.3: Displayed equation seems to be a mixup of notations, should be:
+$$
+\Lambda_{x_{1:n}}(\theta_1,\theta_2)=\frac{g_1(h(x_{1:n});\theta_1)g_2(x_{1:n})}{g_1(h(x_{1:n});\theta_2)g_2(x_{1:n})}=\frac{g_1(h(x_{1:n});\theta_1)}{g_1(h(x_{1:n});\theta_2)}
+$$
+
+* p 44, proof of Result 2.4: The proof is for the discrete case only.
+
+* p 56, Definition 3.5: With '$V$ is a consistent estimator of $Var(T_n)$' the authors must mean that
+$$
+\frac{V}{Var(T_n)}\overset{P}{\rightarrow} 1,
+$$
+as $n\rightarrow\infty$.
+
+* p 61, proof of Result 3.1:  'Using the central limit theorem...'. Unless $T_n$ is a sum of independents, the proof requires some more work here.
+
+* Section 5.3-5.4 vs 5.5: Inconsistent notation, $q$ stands for $dim(\eta)$ in 5.3-5.4 and $dim(\theta)$ in 5.5.
+
+* p 133-134, proof of Result 5.1: The first line, $g(\theta)=(\theta,\hat{\eta}(\theta))^T$, on p 134 does not belong to the display-math environment.Probably it should be placed right after 'and' on the last line of the previous page. Also, it is $\delta h(g(\theta))/(\delta\theta)$ that equals zero, not $g(\theta)$ (line 3 below the first display-math on p. 134).
+
+* p 226, eq. (7.3) (also p 228): Clarify order of integration by writing $E_g(E_g(\log f(Y;\hat{\theta}(X_{1:n}))|X_{1:n}))$.
