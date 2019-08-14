@@ -57,7 +57,7 @@ The computer assigment consists of three parts with separate deadlines and shoul
 
 **D**: The student masters the most central of the course concepts and results, can solve standard problems related to the learning goals as well as showing some ability to solve more advanced problems related to the learning goals.
 
-**E**: The student masters the most central of the course concepts and results, and can solve standard problems related to the learning goals
+**E**: The student masters the most central of the course concepts and results, and can solve standard problems related to the learning goals.
 
 **F**: The student does not fulfill the criteria of grade E.
 
