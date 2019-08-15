@@ -15,7 +15,7 @@ The purpose of the assignments is to train implementing methods in statistical s
 
 ### Reports
 
-The reports should be written in R Markdown and compiled to a pdf for submission on the course webpage. Any numerical results should be dynamically generated when compiling the report, not copied from the console window. Code should be visible in the report (i.e. the default `echo = TRUE` chunk option) with commenting where appropriate. Try to be consistent in your coding and follow e.g. [the Tidyverse style guide](https://style.tidyverse.org/) for more readable code.
+The reports should be written in R Markdown and compiled to a pdf for submission on the course webpage. Any numerical results should be dynamically generated when compiling the report, not copied from the console window. Code should be visible in the report (i.e. the default `echo = TRUE` chunk option) with commenting where appropriate.
 
 
 ### Submission and corrections
