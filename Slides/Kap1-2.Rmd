@@ -1,0 +1,753 @@
+---
+title: "Statistisk inferensteori <br> Likelihood <br> (H & B, Kapitel 1-2)"
+author: "Martin Sköld"
+output:
+  ioslides_presentation:
+    logo: SU_logo_CMYK.png
+    incremental: no
+    css: slides.css
+---
+
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = FALSE)
+handout <- FALSE
+```
+```{r, echo = handout}
+# Data och förberedelse
+
+set.seed(1) # För att kunna reproducera
+
+# Luftkonditionering, tider mellan fel (från Cox, D.R. and Snell, E.J. (1981))
+ac <- c(90, 10, 60, 186, 61, 49, 14, 24, 56, 20, 79, 84, 44, 59, 29, 118, 25, 156, 310, 76, 26, 44, 23, 62, 130, 208, 70, 101)
+
+# Transformera Rs datamaterial "trees", svenska enheter och namn
+träd <- trees
+colnames(träd) <- c("Diameter", "Höjd", "Volym")
+träd <- transform(träd, Radie = Diameter / 39.37 / 2) # Tum till meter
+träd <- transform(träd, Höjd = Höjd / 3.28) # Fot till meter
+träd <- transform(träd, Volym = Volym / 3.28^3) # Kubikfot till kubikmeter
+träd <- subset(träd, select = -Diameter) # Ta bort diameter
+
+# Simulera 4 observationer från en Laplace-fördelning genom att
+# slumpvis byta tecken på exponentialvariabel och addera lägesparameter
+# theta = 1
+theta <- 1
+x.laplace <- rexp(4) * sign(rnorm(4)) + theta
+```
+
+```{r, echo = handout}
+## Funktioner
+
+## Exempel: Statistisk kvalitetskontroll
+
+# Hypergeometrisk likelihood
+L.hyper <- function(M, data){
+  # Bestämmer likelihood givet en observation från HypGeom(50, 1000, M)
+  # Argument:
+  #     M: parametervärde (eventuellt vektor)
+  #     data: observerat värde
+  # Utdata:
+  #     Likelihoodfunktionens värden i M
+  #
+  L.out <- dhyper(data, M, 1000 - M, 50) # Se H&B Tabell A.1
+  return(L.out)
+}
+
+# Binomiallikelihood
+L.binom <- function(theta, data){
+  # Bestämmer likelihood givet en observation från Binomial(50, theta)
+  # Argument:
+  #     theta: parametervärde (eventuellt vektor)
+  #     data: observerat värde
+  # Utdata:
+  #     Likelihoodfunktionens värden i theta
+  #
+  L.out <- dbinom(data, size = 50, prob = theta)
+  return(L.out)
+}
+
+## Exempel: Livslängder
+
+# Exponentiallikelihood
+L.exp <- Vectorize( # Möjliggör elementvis beräkning i theta
+  function(theta, data){
+    # Bestämmer likelihood givet en vektor observationer från Exponential(theta)
+    # Argument:
+    #     theta: parametervärde intensitet (eventuellt vektor)
+    #     data: observationsvektor
+    # Utdata:
+    #     Likelihoodfunktionens värden i theta
+    #
+    L.out <- prod(dexp(data, rate = theta))
+    return(L.out)
+  }
+  , vectorize.args = "theta")
+# Score-funktion för exponentiallikelihood
+S.exp <- Vectorize(
+  function(theta, data){
+    # Bestämmer scorefunktion givet en vektor observationer från Exponential(theta)
+    # Argument:
+    #     theta: parametervärde intensitet (eventuellt vektor)
+    #     data: observationsvektor
+    # Utdata:
+    #     Scorefunktionens värden i theta
+    #
+    n <- length(data)
+    S.out <- n / theta - sum(data)
+    return(S.out)
+  }
+  , vectorize.args = "theta")
+# Fisherinformation för exponentiallikelihood
+I.exp <- Vectorize(
+  function(theta, data){
+    # Bestämmer Fisherinformation givet en vektor observationer från Exponential(theta)
+    # Argument:
+    #     theta: parametervärde intensitet (eventuellt vektor)
+    #     data: observationsvektor
+    # Utdata:
+    #     Fisherinformationens värden i theta
+    #
+    n <- length(data)
+    I.out <- n / theta^2
+    return(I.out)
+  }
+  , vectorize.args = "theta")
+
+## Exempel: Trädvolymer
+
+# Likelihood för modellen Volym_i=beta*Höjd_i*Radie_i^2+epsilon_i
+# med epsilon_i oberoende Normal(0, sigma2)
+L.träd <- Vectorize( # Möjliggör elementvis beräkning i (beta, sigma2)
+  function(beta, sigma2, data){
+    # Bestämmer likelihood i regressionsmodell för volymer av trädstammar
+    # Argument:
+    #     (beta, sigma2): parametervärde (eventuellt vektorer)
+    #     data: data.frame innehållander variablerna Volym, Radie och Höjd
+    # Utdata:
+    #     Likelihoodfunktionens värden i (beta, sigma2)
+    #    
+    L.out <- with(data, prod(dnorm(Volym, beta * Radie^2 * Höjd, sd = sqrt(sigma2))))
+    return(L.out)
+  },
+  vectorize.args = c("beta", "sigma2")
+)
+# Fishers informationsmatris för modell för trädvolymer
+I.träd <- function(beta, sigma2, data){
+    # Bestämmer Fisherinformation i regressionsmodell för volymer av trädstammar
+    # Argument:
+    #     (beta, sigma2): parametervärde (skalära)
+    #     data: data.frame innehållande variablerna Volym, Radie och Höjd
+    # Utdata:
+    #     Fishers informationsmatris i (beta, sigma2)
+    #    
+    I.out <- with(data,
+                  matrix(c(sum((Höjd * Radie^2)^2 / sigma2),
+                    sum(Höjd * Radie^2 * (Volym - beta * Höjd * Radie^2) / (sigma2^2)),
+                    sum(Höjd * Radie^2 * (Volym - beta * Höjd * Radie^2) / (sigma2^2)),
+                    sum((Volym - beta * Höjd * Radie^2)^2 / sigma2^3 - 1 / (2 * sigma2^2))),
+                  nrow = 2))
+    return(I.out)
+}
+# Approximativ likelihood baserad på kvadratisk approximation av loglikelihood
+L.träd.approx <- Vectorize( # Möjliggör elementvis beräkning i (beta, sigma2)
+    function(beta, sigma2, data){
+        # Bestämmer approximativ likelihood i regressionsmodell för volymer av trädstammar
+        # Argument:
+        #     (beta, sigma2): parametervärde (eventuellt vektorer)
+        #     data: data.frame innehållander variablerna Volym, Radie och Höjd
+        # Utdata:
+        #     Likelihoodfunktionens värden i (beta, sigma2)
+        #
+        # ML-skattningar av beta och sigma2
+        beta.hat <- with(träd, sum(Volym * Radie^2 * Höjd) / sum((Radie^2 * Höjd)^2))
+        sigma2.hat <- with(träd, mean((Volym - beta.hat * Radie^2 * Höjd)^2))
+        z <- as.matrix(c(beta - beta.hat, sigma2 - sigma2.hat))
+        Sigma.inv <- I.träd(beta.hat, sigma2.hat, träd)
+        L.out <- exp(- t(z) %*% Sigma.inv %*% z/2)/sqrt(det(Sigma.inv))
+        return(L.out)
+    },
+    vectorize.args = c("beta", "sigma2")
+)
+
+## Exempel: laplacefördelning
+
+# Likelihood för laplacefördelning med lägesparameter theta
+L.laplace <- Vectorize(# Möjliggör elementvis beräkning i theta
+    function(theta, data){
+        # Bestämmer likelihood givet en vektor observationer från Laplace-fördelning
+        # med lägesparameter theta (täthet f(x)=exp(|x-theta|)/2)
+        # Argument:
+        #     theta: parametervärde läge (eventuellt vektor)
+        #     data: observationsvektor
+        # Utdata:
+        #     Likelihoodfunktionens värden i theta
+        #
+        prod(exp(-abs(data - theta)) / 2)},
+    vectorize.args = "theta")
+```
+
+
+# Tre exempel
+
+## Statistisk kvalitetskontroll
+
+En industri producerar komponenter i stor volym, istället för att kontrollera samtliga komponenter i en batch om $1000$ st gör man ett slumpmässigt stickprov av $50$ st. Av dessa visar sig $3$ vara defekta.
+
+Är kvalitetsmålet max 10% defekta uppfyllt?
+
+## Livslängder
+
+Figuren beskriver tidpunkter för fel (i flygtimmar efter mätningar började) hos luftkonditionering i en Boeing 720.
+
+```{r, echo = handout, fig.height=2}
+# Plotta feltider cumsum(ac)
+par(pin = c(4.38,.5)) 
+plot(cumsum(ac), rep(0, length(ac)), 
+     axes = FALSE, xlab = "", ylab = "", xlim=c(0,2500), 
+     pch = "|")
+axis(1,pos=c(0,0) ,at=c(0, 2500), las=3)
+```
+
+Hur stor är felintensiteten?
+
+## Trädvolymer
+
+Hur kan vi prediktera volym givet radie och höjd?
+
+```{r, echo=handout}
+# Plotta datamaterialet träd
+plot(träd)
+```
+ 
+# Statistiska modeller
+
+<div class="columns-2">
+```{r, out.width = "200px"}
+knitr::include_graphics("https://upload.wikimedia.org/wikipedia/commons/a/a2/GeorgeEPBox.jpg")
+```
+
+<div class="white">
+
+
+*Essentially all models are wrong, but some are useful.*
+
+-- George E. P. Box
+</div></div>
+
+
+## Statistisk modell {.build}
+
+<div class="boxed">
+**Definition:** (H & B, sekt. 1.2) En statistisk modell är en familj av sannolikhetsfördelningar $\mathcal{P}=\{P_\theta, \theta\in\Theta \}$ definierade på utfallsrummet $\mathcal{T}$.
+</div>
+<div class="boxed">
+**Definition:** En statistisk modell $\mathcal{P}=\{P_\theta, \theta\in\Theta \}$ är identifierbar om $P_{\theta_1}=P_{\theta_2}\Rightarrow \theta_1=\theta_2$ för alla $\theta_1$ och $\theta_2$ i $\Theta$.
+</div>
+
+# Likelihood
+
+## Likelihood
+<div class="boxed">
+**Definition:** (H & B, def. 2.1) Givet observerad data $x\in \mathcal{T}$ och en modell $\mathcal{P}=\{P_\theta; \theta\in\Theta\}$ ges likelihoodfunktionen av $$L(\theta)=p(x|\theta),\quad \theta\in\Theta,$$ där $p(\cdot|\theta)$ är den täthet/sannolikhetsfunktion som svarar mot $P_\theta$.  Log-likelihoodfunktionen är $$l(\theta)=\log L(\theta),\quad \theta\in\Theta.$$
+</div>
+
+## Statistisk kvalitetskontroll
+Antag $N=1000, n=50$ och att vi finner $x=3$ defekta.
+```{r, echo = handout}
+# Figur: Likelihood och log-likelihood för hypergeometrisk fördelning
+M <- 0:1000 # Grid för plott
+par(mfrow = c(1,2))
+# Plotta likelihood
+plot(M, L.hyper(M, 3), 
+     pch = 20, cex = .1,
+     xlab = expression(M), ylab = expression(L(M)))
+# Plotta log-likelihood
+plot(M, log(L.hyper(M, 3)), 
+     pch = 20, cex = .1, ylim = c(-180, 0),
+     xlab = expression(M), ylab = expression(l(M)))
+```
+
+
+
+## Statistisk kvalitetskontroll (Binomial)
+Antag $n=50$ och att vi finner $x=3$ defekta.
+```{r, echo=handout}
+# Figur: Likelihood och log-likelihood för binomialfördelning
+par(mfrow = c(1,2))
+theta <- seq(0, 1, length.out = 1000)
+# Plotta likelihood
+plot(theta, L.binom(theta, 3), 
+     type = "l",
+     xlab = expression(theta), ylab = expression(L(theta)))
+# Plotta log-likelihood
+plot(theta, log(L.binom(theta, 3)),
+     type = "l", ylim = c(-180, 0),
+     xlab = expression(theta), ylab = expression(l(theta)))
+```
+
+## Livslängder
+
+
+```{r,  echo=handout}
+# Figur: Likelihood och log-likelihood för exponentialfördelning
+par(mfrow = c(1,2))
+theta <- seq(0, 0.03, length.out = 1000)
+# Plotta likelihood
+plot(theta, L.exp(theta, ac),
+     type = "l",
+     xlab = expression(theta), ylab = expression(L(theta)))
+# Plotta log-likelihood
+plot(theta, log(L.exp(theta, ac)),
+     type = "l",
+     xlab = expression(theta), ylab = expression(l(theta)))
+```
+
+## Trädvolymer
+
+```{r, echo=handout}
+# Figur: Likelihood och log-likelihood för regressionsmodell trädvolymer
+beta <- seq(1.18, 1.25, length.out = 100)
+sigma2 <- seq(0.0025, .009, length.out = 100)
+# Beräkna likelihood över en matris av parametervärden
+L.träd.mat <- outer(beta, sigma2, FUN = L.träd, data = träd)
+# Plotta likelihood och log-likelihood som konturer
+par(mfrow=c(1,2))
+contour(beta, sigma2, L.träd.mat,
+        xlab = expression(beta), ylab = expression(sigma^2), main = "Likelihood")
+contour(beta, sigma2, log(L.träd.mat),
+        xlab = expression(beta), ylab = expression(sigma^2), main = "Log-likelihood")
+```
+
+
+## Maximum likelihood
+
+<div class="boxed">
+**Definition:**  (H & B, def. 2.2) En maximum-likelihood skattning av $\theta_0$ är ett värde $\hat{\theta}\in\Theta$ som maximerar $L(\theta)$. 
+</div>
+
+
+
+
+
+## Binomialfördelning likelihood då $x=n$
+```{r, echo=handout}
+# Figur: likelihood för Binomial(10, theta) då x=10
+x <- 10
+theta <- seq(0, 1, length.out = 1000)
+plot(theta, dbinom(x, size = 10, prob = theta), type = "l",
+     xlab = expression(theta), ylab = expression(L(theta)))
+```
+
+## Laplacefördelning täthet ($\theta=1$)
+
+```{r, echo = handout}
+# Figur: Laplacefördelning täthet
+x <- seq(-3, 6, length.out = 1000)
+plot(x, exp(-abs(x-1))/2, type = "l",
+     xlab = expression(x), ylab = expression(f(x)))
+axis(side = 1, at = 1, label=expression(theta))
+```
+
+
+## Laplacefördelning likelihood
+```{r,echo=handout}
+# Figur: likelihood och log-likelihood för Laplacefördelning givet jämnt (4) antal obs
+par(mfrow = c(1,2))
+theta <- seq(-1, 3, length.out = 1000)
+# Plotta likelihood
+plot(theta, L.laplace(theta, x.laplace), 
+     xlab = expression(theta), ylab = expression(L(theta)), 
+     main="Likelihood (n=4)", type = "l")
+# Lägg till data på x-axel
+points(x.laplace, rep(0,4), pch = 4)
+# Plotta log-likelihood
+plot(theta, log(L.laplace(theta, x.laplace)), 
+     xlab = expression(theta), ylab = expression(l(theta)), 
+     main="Loglikelihood (n=4)", type = "l")
+```
+
+## Laplacefördelning likelihood
+```{r,echo=handout}
+# Figur: likelihood och log-likelihood för Laplacefördelning givet udda (3) antal obs
+par(mfrow = c(1,2))
+theta <- seq(-1, 3, length.out = 1000)
+# Plotta likelihood
+plot(theta, L.laplace(theta, x.laplace[1:3]), 
+     xlab = expression(theta), ylab = expression(L(theta)), 
+     main="Likelihood (n=3)", type = "l")
+# Lägg till data på x-axel
+points(x.laplace[1:3], rep(0,3), pch = 4)
+# Plotta log-likelihood
+plot(theta, log(L.laplace(theta, x.laplace[1:3])), 
+     xlab = expression(theta), ylab = expression(l(theta)), 
+     main="Loglikelihood (n=3)", type = "l")
+```
+
+# Transformationer av data
+
+## Likelihood och transformationer av data {.build}
+
+<div class="boxed">
+**Sats:**  (Transformationssatsen Gut, Th. 2.1 eller H & B (A.12))
+Låt $X\in \mathbf{R}^n$ vara en vektor av kontinuerliga stokastiska variabler med simultan täthet $f_X$ och $g:\mathbf{R}^n\rightarrow\mathbf{R}^n$ en bijektion med invers $g^{-1}=h$. Då får vektorn $Y=g(X)$ täthet
+$$
+f_Y(y)=f_X(h_1(y),\dots,h_n(y))|J|,
+$$
+där $J$ är funktionen $h$s Jakobian (matrisen av partialderivator $dh_i/dy_j$). 
+</div>
+
+<div class="boxed">
+**Följdsats:**  Under förutsättningarna i transformationssatsen är likelihoodfunktionerna med avseende på data $x$ och med avseende på data $y=g(x)$ proportionella.
+</div>
+
+
+## Relativ likelihood 
+
+<div class="boxed">
+**Definition:**  [Relativ likelihood (H \& B, def. 2.5)] Den relativa likelihoodfunktionen är likelihoodfunktionen relativt sitt maximum 
+$$
+    \tilde{L}(\theta)=\frac{L(\theta)}{L(\hat{\theta})}
+$$
+</div>
+
+
+
+
+## Relativ likelihood
+Ger oss möjlighet att (något godtyckligt) kvantifiera hur troligt det är att data genererats med $\theta_0=\theta$.
+
+<div class="boxed"> Skala för relativ likelihood (H & B, sid. 22)
+
+- $1\geq \tilde{L}(\theta) > 1/3$, $\theta$ mycket rimligt,
+- $1/3\geq \tilde{L}(\theta) > 1/10$, $\theta$ rimligt,
+- $1/10\geq \tilde{L}(\theta) > 1/100$, $\theta$ mindre rimligt,
+- $1/100\geq \tilde{L}(\theta) > 1/1000$, $\theta$ knappast rimligt,
+- $1/1000\geq \tilde{L}(\theta)$, $\theta$ orimligt.
+
+</div>
+
+## Relativ likelihood, livslängder
+
+```{r, echo=handout}
+# Figur: relativ likelihood för exponentialfördelning (livslängder)
+theta <- seq(0.0001, 0.03, length.out = 1000)
+theta.hat <- 1 / mean(ac) # ML-skattning
+# Plotta relativ likelihood (log-skala på y-axel)
+plot(theta, L.exp(theta, ac) / L.exp(theta.hat, ac), 
+     log = "y", type = "l", ylim = c(1/2000, 1),
+     xlab=expression(theta), ylab = expression(tilde(L)(theta)),
+     axes = FALSE)
+# Lägg till horisontella linjer motsvarande skala för relativ likelihood
+abline(h = c(1/1000, 1/100, 1/10, 1/3), lty=3)
+axis(side = 1)
+axis(side = 2, at = c(1/1000, 1/100, 1/10, 1/3, 1), labels = c("1/1000", "1/100", "1/10", "1/3", "1"))
+box()
+```
+
+
+
+# Omparametrisering av modell
+
+## Omparametrisering
+
+<div class="boxed">
+**Definition:** En omparametrisering av en statistisk modell $\mathcal{P}$ ges av en bijektion $\phi=h(\theta)$ så att  $$\mathcal{P}=\{P_\theta; \theta\in\Theta \}=\{Q_\phi; \phi\in\Phi \},$$ där $Q_{h(\theta)}=P_\theta$.
+</div>
+
+
+## Omparametrisering: Livslängder $\mu=1/\theta$
+```{r fig.height=4, echo=handout}
+# Figur: likelihood exponentialfördelning (livslängder) i två parametriseringar
+par(mfrow = c(1, 2))
+theta <- seq(0.005, 0.025, length.out = 1000)
+# plotta likelihood parametriserad i theta
+plot(theta, L.exp(theta, ac),
+     type = "l",
+     xlab = expression(theta), ylab = expression(L(theta)))
+mu <- seq(40, 200, length.out = 1000)
+# plotta likelihood parametriserad i mu = 1/theta
+plot(mu, L.exp(1 / mu, ac),
+     type = "l",
+     xlab = expression(mu), ylab = expression(L(mu)))
+```
+
+
+
+
+
+
+## Plug-in principen
+<div class="boxed"> **Definition: ** (Plug-in principen)
+  Givet en skattning av $\hat{\theta}$ av $\theta_0$ skattas $\phi_0=h(\theta_0)$ med $\hat{\phi}=h(\hat{\theta})$.
+</div>
+
+# Score och information
+
+## Score och information
+
+<div class="boxed"> **Definition: ** (H & B, def 2.6, 5.1)
+Score-funktionen till en deriverbar likelihood-funktion $L$ av en variabel $\theta$ är log-likelihoodfunktionens derivata
+$$
+    S(\theta)=\frac{d}{d\theta}\log L(\theta)=\frac{L'(\theta)}{L(\theta)}.
+$$
+Score-vektorn till en differentierbar likelihood-funktion av en vektorvärd parameter $\theta=(\theta_1,\ldots,\theta_d)$ är log-likelihoodfunktionens gradient:
+$$
+    S(\theta)=\nabla\log L(\theta)=(\frac{d\log L(\theta)}{d\theta_1},\ldots,\frac{d\log L(\theta)}{d\theta_d}).
+$$
+</div>
+
+## Livslängder, score
+
+```{r, echo=handout}
+# Figur: likelihood och score-funktion för exponentialmodell
+theta <- seq(0.005, 0.025, length.out = 1000)
+theta.hat <- 1 / mean(ac) # ML-skattning
+par(mfrow = c(1, 2))
+# plotta log-likelihood
+plot(theta, log(L.exp(theta, ac)),
+     type = "l",
+     xlab = expression(theta), ylab = expression(l(theta)))
+# dra vertikal linje vid ML-skattare
+abline(v = theta.hat, lty = 3)
+# plotta scorefunktion
+plot(theta, S.exp(theta, ac),
+     type = "l",
+     xlab = expression(theta), ylab = expression(S(theta)))
+# dra vertikal linje vid ML-skattare
+abline(v = theta.hat, lty = 3)
+# y-axel
+abline(h = 0)
+```
+
+
+
+## Score och information
+
+<div class="boxed"> **Definition:** (H & B, def. 2.7, 5.3)
+Fisher-informationen till en två gånger deriverbar likelihood-funktion $L$ av en variabel $\theta$ är;
+$$
+I(\theta)=-\frac{d^2}{d\theta^2}\log L(\theta)=-\frac{d}{d\theta} S(\theta).
+$$
+Fishers informationsmatris för en två gånger differentierbar likelihood-funktion av en vektorvärd parameter $\theta=(\theta_1,\ldots,\theta_d)$ är;
+$$
+I(\theta)=-Hess(\log L(\theta))=-\bigl(\frac{d^2}{d\theta_i\,d\theta_j}\log L(\theta)\bigr). 
+$$
+Speciellt kallas $I(\hat{\theta})$ den observerade Fisher-informationen.
+</div>
+
+
+
+## Observerad Fisherinformation efter omparametrisering
+
+<div class="boxed"> **Sats:** (H & B, res. 2.1) Låt $\phi=h(\theta)$, $\phi, \theta\in \mathbf{R}$ vara en omparametrisering. Då ges observerade Fisherinformationen i den nya parametriseringen av
+$$
+I_\phi(\hat{\phi})=I_\theta(\hat{\theta})h'(\hat{\theta})^{-2}
+$$
+
+</div>
+
+# Numerik
+
+## Approximation av log-likelihoodfunktion
+
+<div class="boxed"> **Taylorutveckling av ordning två: (H & B, B.2.3)** I en omgivning av $x=a$ kan en två ggr kontinuerligt deriverbar funktion approximeras med
+$$
+f(x)\approx f(a) + (x-a)f'(a) + \frac{(x-a)^2f''(a)}{2}.
+$$
+</div>
+
+
+
+
+## Approximation av log-likelihood och likelihood
+
+```{r, echo=handout}
+# Figur: relativ log-likelihood och likelihood tillsammans med kvadratiska approximationer
+par(mfrow = c(1, 2))
+theta <- seq(0.005, 0.025, length.out = 1000)
+# plotta relativ log-likelihood
+plot(theta, log(L.exp(theta, ac))-log(L.exp(theta.hat, ac)),
+     type = "l",
+     xlab = expression(theta), ylab = expression(tilde(l)(theta)))
+# dra vertikal linje vid ML-skattare
+abline(v = theta.hat, lty = 3)
+# lägg till kvadratisk approximation
+lines(theta, - (theta - theta.hat)^2 * I.exp(theta.hat, ac) / 2, lty = 2)
+# plotta relativ likelihood
+plot(theta, L.exp(theta, ac) / L.exp(theta.hat, ac),
+     type = "l",
+     xlab = expression(theta), ylab = expression(tilde(L)(theta)))
+# dra vertikal linje vid ML-skattare
+abline(v = theta.hat, lty = 3)
+# lägg till kvadratisk approximation
+lines(theta, exp(-(theta - theta.hat)^2 * I.exp(theta.hat, ac) / 2), lty = 2)
+```
+
+## Trädvolym
+
+```{r, echo = handout}
+# Figur: likelihood och kvadratisk approximation för trädvolymer
+# Skapa matris med värden på approximativ likelihood i kombinationer av parametervärden
+L.träd.approx.mat <- outer(beta, sigma2, FUN = L.träd.approx, data = träd)
+# Plotta approximativ relativ likelihood som konturer
+contour(beta, sigma2, L.träd.approx.mat / max(L.träd.approx.mat),
+        xlab = expression(beta), ylab = expression(sigma^2), main = "Likelihoodapproximation")
+# Plotta relativ likelihood som konturer
+contour(beta, sigma2, L.träd.mat / max(L.träd.mat),
+        xlab = expression(beta), ylab = expression(sigma^2), lty = 3, add = TRUE, drawlabels = FALSE)
+```
+
+
+
+## Newton - Raphsons metod
+
+<div class="boxed"> **Newton-Raphsons metod:** (H & B, C.1.3)
+
+- Välj startvärde $x_0$.
+- Iterera $$x_{n+1}=x_n-\frac{f'(x_n)}{f''(x_n)}$$ tills $|f'(x_n)|$ blir litet.
+</div>
+
+## Newton - Raphsons metod för livslängder
+```{r, echo=handout}
+# OBS: Nedanstående klipp&klistra-slinga använder jag för att
+# få ihop en sekvens bilder till bildspelet, om syftet vore att
+# få ett numeriskt värde på ML-skattningen hade jag givetvis
+# kodat annorlunda!
+# 
+# Figur: log-likelihood och första iteration av NR
+#
+# initiera
+i <- 1
+theta.n <- numeric()
+# startvärde
+theta.n[1] <- 0.02
+theta.hat <- 1 / mean(ac) # ML-skattning
+theta <- seq(0.005, 0.03, length.out = 1000)
+# Plotta loglikelihood
+plot(theta, log(L.exp(theta, ac)), type = "l",
+     xlab = expression(theta),
+     ylab = expression(l(theta)),
+     ylim = c(-160, -145))
+# Bestäm log-likelihood, score och information i theta_i
+l <- log(L.exp(theta.n[i], ac))
+S <- S.exp(theta.n[i], ac)
+I <- length(ac) / theta.n[i]^2
+l.taylor <- l + (theta-theta.n[i])*S-(theta-theta.n[i])^2/2*I
+lines(theta, l.taylor, lty = 3)
+abline(v = theta.n[i], lty = 3)
+theta.n[i+1] <- theta.n[i] + S/I
+i <- i + 1
+abline(v = theta.n[i], lty=3);
+abline(v = theta.hat)
+axis(side = 3, at = c(theta.n[i-1], theta.n[i]), 
+     labels = c(expression(theta[0]), expression(theta[1])))
+axis(side = 1, at = theta.hat, label = expression(hat(theta)))
+```
+
+## Newton - Raphsons metod för livslängder
+
+```{r, echo = handout}
+plot(theta, log(L.exp(theta, ac)), type = "l",
+     xlab = expression(theta),
+     ylab = expression(l(theta)),
+     ylim = c(-160, -145))
+l <- log(L.exp(theta.n[i], ac))
+S <- S.exp(theta.n[i], ac)
+I <- length(ac) / theta.n[i]^2
+l.taylor <- l + (theta-theta.n[i])*S-(theta-theta.n[i])^2/2*I
+lines(theta, l.taylor, lty = 3)
+abline(v = theta.n[i], lty = 3)
+theta.n[i+1] <- theta.n[i] + S/I
+i <- i + 1
+abline(v = theta.n[i], lty=3);
+abline(v = theta.hat)
+axis(side = 3, at = c(theta.n[i-1], theta.n[i]), 
+     labels = c(expression(theta[1]), expression(theta[2])))
+axis(side = 1, at = theta.hat, label = expression(hat(theta)))
+```
+
+## Newton - Raphsons metod för livslängder
+
+```{r, echo = handout}
+plot(theta, log(L.exp(theta, ac)), type = "l",
+     xlab = expression(theta),
+     ylab = expression(l(theta)),
+     ylim = c(-160, -145))
+l <- log(L.exp(theta.n[i], ac))
+S <- S.exp(theta.n[i], ac)
+I <- length(ac) / theta.n[i]^2
+l.taylor <- l + (theta-theta.n[i])*S-(theta-theta.n[i])^2/2*I
+lines(theta, l.taylor, lty = 3)
+abline(v = theta.n[i], lty = 3)
+theta.n[i+1] <- theta.n[i] + S/I
+i <- i + 1
+abline(v = theta.n[i], lty=3);
+abline(v = theta.hat)
+axis(side = 3, at = c(theta.n[i-1], theta.n[i]), 
+     labels = c(expression(theta[2]), expression(theta[3])))
+axis(side = 1, at = theta.hat, label = expression(hat(theta)))
+```
+
+## Newton - Raphsons metod för livslängder
+
+```{r, echo = handout}
+plot(theta, log(L.exp(theta, ac)), type = "l",
+     xlab = expression(theta),
+     ylab = expression(l(theta)),
+     ylim = c(-160, -145))
+l <- log(L.exp(theta.n[i], ac))
+S <- S.exp(theta.n[i], ac)
+I <- length(ac) / theta.n[i]^2
+l.taylor <- l + (theta-theta.n[i])*S-(theta-theta.n[i])^2/2*I
+lines(theta, l.taylor, lty = 3)
+abline(v = theta.n[i], lty = 3)
+theta.n[i+1] <- theta.n[i] + S/I
+i <- i + 1
+abline(v = theta.n[i], lty=3);
+abline(v = theta.hat)
+axis(side = 3, at = c(theta.n[i-1], theta.n[i]), 
+     labels = c(expression(theta[3]), expression(theta[4])))
+axis(side = 1, at = theta.hat, label = expression(hat(theta)))
+```
+
+# Tillräcklighet
+
+## Tillräcklighet {.build}
+
+<div class="boxed"> **Definition:** (Stickprovsvariabel (H & B, def 2.8)) 
+
+En stickprovsvariabel är en funktion $T=h(X)$ av ett stickprov med realisering $t=h(x)$.
+</div>
+
+<div class="boxed"> **Definition:** (Tillräcklighet (Sufficiency) (H & B, def 2.9))
+
+En stickprovsvariabel $t=h(x)$ är tillräcklig om fördelningen för $X|T=t$, $X\sim P_\theta$, ej beror på $\theta$ för något $t$.
+
+</div>
+
+## Tillräcklighet, faktoriseringskriteriet
+
+<div class="boxed"> **Sats:** (Faktoriseringskriteriet (H & B, Result 2.2))
+
+En stickprovsvariabel $T=h(X)$ är tillräcklig om och endast om tätheten/sannolikhetsfunktionen för $X$ kan faktoriseras som
+$$
+f_X(x|\theta)=g_1(h(x),\theta)g_2(x).
+$$
+</div>
+
+## Minimaltillräcklighet
+
+<div class="boxed"> **Definition:** (H & B, Definition 2.11) En stickprovsvariabel $T=h(X)$ är minimaltillräcklig om den kan bestämmas ur varje annan till räcklig stickprovsvariabel $\tilde{T}$.
+
+# Två principer
+
+## Tillräcklighetsprincipen och Likelihoodprincipen {.build}
+
+<div class="boxed"> **Tillräcklighetsprincipen:** Statistiska slutledningar skall endast bero på värdet av en tillräcklig stickprovsvariabel.
+</div>
+
+
+<div class="boxed"> **Likelihoodprincipen:** Statistiska slutledningar skall endast bero på (relativa) likelihoodfunktionen.
+</div>
+

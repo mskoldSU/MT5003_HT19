@@ -1,0 +1,110 @@
+---
+title: "Statistisk inferensteori <br> Kursinfo"
+author: "Martin Sköld"
+date: "3 september 2019"
+output:
+  ioslides_presentation:
+    incremental: no
+    logo: SU_logo_CMYK.png
+    css: slides.css
+---
+
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = FALSE)
+handout <- FALSE
+```
+
+
+# Statistisk inferens
+<div class="white">
+*"induktiv vetenskap där man  drar slutsatser ur empiriska data under en osäkerhet orsakad av slumpmässighet i data."*
+
+-- Nationalencyklopedin
+</div>
+
+## Statistisk inferensteori
+
+Frågeställningar:
+
+- hur uppskattar jag ett okänt parametervärde?
+- hur bestämmer/uttrycker jag osäkerheten i dess värde?
+- hur avgör jag om en modellförenkling är förenlig med data?
+- hur väljer jag mellan olika modeller för data?
+
+## Sannolikhetsteori vs inferensteori
+
+Antag $X\sim Bin(10,\theta_0)$.
+
+- Sannolikhetsteori: Om $\theta_0=1/3$, vad är $P(X=4)$?\pause
+- Statistisk inferens: Om vi observerar $x=4$, vad kan vi säga om $\theta_0$?
+
+Kan vi använda sannolikhetsteoretiska begrepp för att uttala oss om osäkerheten? Varken $4$ eller $\theta_0$ är ju stokastiska?
+
+## Sannolikhetsfunktion och Likelihood
+```{r, echo = FALSE}
+par(mfrow=c(1,2))
+x <- 0:10
+plot(x, dbinom(x, size = 10, 1/3), ylab=expression(p(x)), xlab=expression(x))
+theta <- seq(0, 1, length.out = 1000)
+plot(theta, dbinom(4, size = 10, theta), type = "l",
+     ylab=expression(L(theta)), xlab=expression(theta))
+
+```
+
+
+## Bayesian vs frekventist
+
+<div class="boxed">
+  **Frekventist:** Vi skattar $\theta_0$ med $\hat{\theta}(x)=x/n=2/5$, osäkerheten beskrivs av fördelningen hos $\hat{\theta}(X)$. Men denna beror på okända $\theta_0$?!
+</div>
+
+<div class="boxed">
+  **Bayesian:**  Vi inför en stokastisk variabel $\theta$ för att beskriva osäkerheten; apriorifördelningen $p_\theta(\cdot)$ beskriver osäkerheten före experimentet, denna uppdateras till aposteriorifördelningen $p_\theta(\cdot|x=4)$ efter vi observerat $x=4$. Men hur bestämmer vi $p_\theta$?!
+</div>
+
+# Statistisk inferensteori, MT5003
+
+## Från kursplanen
+
+### Kursens innehåll
+
+Kursen behandlar grundläggande statistiska principer och teori från en såväl frekventistisk som Bayesiansk synvinkel. Som en del härav studeras bland annat likelihoodteori, tillräcklighet, information, asymptotik och Bootstrap tillämpat på metoder för punktskattning, intervallskattning och hypotestest. Implementering av härledda metoder i statistisk programvara utgör ett viktigt moment i kursen.
+
+## Från kursplanen
+
+### Förväntade studieresultat
+
+*Efter att ha genomgått kursen förväntas studenten kunna:*
+
+1. definiera begrepp och härleda resultat inom den statistiska inferensteorin
+2. härleda likelihoodbaserade metoder för punktskattning, intervallskattning och hypotestest
+3. härleda och tolka Bayesianska aposteriorifördelningar i enkla situationer
+4. implementera metoder i statistisk programvara och tolka resultat
+
+
+# Examination
+
+## Skriftlig tentamen, 6 hp
+Lärandemål 1-3 examineras med skriftlig tentamen (1/11, omtentamen 27/11).
+
+- Två delar, bas- och betygsdel.
+- På basdelen krävs 20 av 30 poäng. Garanterar minst E.
+- Vid godkänt på basdelen rättas betygsdelen, betyg enligt tabell.
+
+A: 25-30, B: 19-24, C: 13:18, D: 7-12, E: 0-6.
+
+## Inlämningsuppgift, 1,5 hp
+
+Lärandemål 4 examineras med inlämningsuppgift.
+
+- Tre delar med deadlines 17/9, 10/10 och 24/10.
+- Uppgifter inlämnade i tid får feedback och möjlighet till (en) komplettering under kursens gång. Sena inlämningar och vidare kompletteringar tas emot i samband med omtentamen, därefter hänvisas till nästa kursomgångs uppgifter.
+
+## Rapporter
+
+- Skrivs **självständigt**:
+    - Det är tillåtet att diskutera lösningar med kursare, programkod och rapport skriver du dock själv.
+    - Det är inte tillåtet att använda andras material utan källhänvisning, vare sig du fått det av kursare, Youtube eller annanstans. Gäller såväl text, bilder som programkod.
+- Skrivs i R Markdown med dynamisk R kod (inget klipp & klistrande av numeriska värden).
+
