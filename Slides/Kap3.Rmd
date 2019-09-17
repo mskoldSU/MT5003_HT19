@@ -392,8 +392,10 @@ $P(X\geq 3)=P(X\leq 2)$ då $X\sim Bin(50, 0.1)$.
 
 Histogram över simulerade $T = |1/\bar{X}-0.01|$ då $\theta=0.01$.
 
-```{r, echo = handout}
+```{r, echo = TRUE}
 T <- abs(1 / rgamma(100000, 28, 28 * 0.01) - 0.01)
+```
+```{r}
 hist(T, 100, main = "")
 ```
 
@@ -417,8 +419,8 @@ p
 knitr::include_graphics("http://statistics.berkeley.edu/sites/default/files/pages/neyman.jpg")
 ```
 
-```{r, out.width = "345px"}
-knitr::include_graphics("http://aprender-mat.info/history/photos/Pearson_Egon_2.jpeg")
+```{r, out.width = "300px"}
+knitr::include_graphics("http://www-history.mcs.st-and.ac.uk/BigPictures/Pearson_Egon_3.jpeg")
 ```
 </div>
 
