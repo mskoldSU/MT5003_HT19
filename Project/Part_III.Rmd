@@ -71,7 +71,7 @@ Use the algorithm to sample (at least) 10000 vectors $\boldsymbol{\theta}$ from 
 
 * Use the samples to approximate posterior means and 95% credibility intervals (using ´quantile´) for the parameters. Compare with the results of the frequentist analysis (as a check, the results should be similar).
 
-* Let $Y^{*}$ denote the result of a future test with explanatory variables $x^{*}$. Then we can write the probability of a pass as $P(Y^{*}=1|y)=E(p(x^{*})|y)$. Use this to approximate $P(Y^{*}=1|y)$ when  $\tilde{x}$ corresponds to a privately educated subject of your own sex and age.
+* Let $Y^{*}$ denote the result of a future test with explanatory variables $x^{*}$. Then we can write the probability of a pass as $P(Y^{*}=1|y)=E(p(x^{*})|y)$. Use this to approximate $P(Y^{*}=1|y)$ when  $x^{*}$ corresponds to a privately educated subject of your own sex and age.
 
 
 ---
