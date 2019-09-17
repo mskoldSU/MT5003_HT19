@@ -61,13 +61,13 @@ post(c(260, -10, 10, -20), ytest, Xtest) / post(c(270, -15, 15, -25), ytest , Xt
 
 **Task 3:**
 
-Implement a Metropolis-Hastings algorithm (c.f. code in [slide 22](https://rawcdn.githack.com/mskoldSU/MT5003_HT19/master/Slides/Kap6.html#22) and the textbook 8.4) that given a starting value, simulates from the posterior distribution of $\boldsymbol{\theta}$. As starting value you may for example us the ML estimate $\hat{\theta}$, in that case you need not worry about convergence to the stationary distribution (can be assumed immediate).
+Implement a Metropolis-Hastings algorithm (c.f. code in [slide 22](https://rawcdn.githack.com/mskoldSU/MT5003_HT19/e87ebfc8d70a4929df28e621e568cd6db1ffa67a/Slides/Kap6.html#22) and the textbook 8.4) that given a starting value, simulates from the posterior distribution of $\boldsymbol{\theta}$. As starting value you may for example us the ML estimate $\hat{\theta}$, in that case you need not worry about convergence to the stationary distribution (can be assumed immediate).
 
 Use the algorithm to sample (at least) 10000 vectors $\boldsymbol{\theta}$ from the posterior. A suitable choice of `sigma` (the step-size) is the vector of ML-estimator standard errors.
 
-* Plot the draws for each parameter (corresponding to [slide 23](https://rawcdn.githack.com/mskoldSU/MT5003_HT19/master/Slides/Kap6.html#23))
+* Plot the draws for each parameter (corresponding to [slide 23](https://rawcdn.githack.com/mskoldSU/MT5003_HT19/e87ebfc8d70a4929df28e621e568cd6db1ffa67a/Slides/Kap6.html#23))
 
-* Plot histograms of the parameter posteriors (corresponding to [slide 24](https://rawcdn.githack.com/mskoldSU/MT5003_HT19/master/Slides/Kap6.html#24)).
+* Plot histograms of the parameter posteriors (corresponding to [slide 24](https://rawcdn.githack.com/mskoldSU/MT5003_HT19/e87ebfc8d70a4929df28e621e568cd6db1ffa67a/Slides/Kap6.html)).
 
 * Use the samples to approximate posterior means and 95% credibility intervals (using ´quantile´) for the parameters. Compare with the results of the frequentist analysis (as a check, the results should be similar).
 

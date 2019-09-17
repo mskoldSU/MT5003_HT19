@@ -269,6 +269,7 @@ code {
 }
 img {
   max-width:100%;
+  height: auto;
 }
 .tabbed-pane {
   padding-top: 12px;
@@ -413,11 +414,11 @@ ytest &lt;- c(rep(TRUE, 4), rep(FALSE, 4))
 post(c(260, -10, 10, -20), ytest, Xtest) / post(c(270, -15, 15, -25), ytest , Xtest)</code></pre>
 <pre><code>## [1] 3.707556e+25</code></pre>
 <p><strong>Task 3:</strong></p>
-<p>Implement a Metropolis-Hastings algorithm (c.f. code in <a href="https://rawcdn.githack.com/mskoldSU/MT5003_HT19/master/Slides/Kap6.html#22">slide 22</a> and the textbook 8.4) that given a starting value, simulates from the posterior distribution of <span class="math inline">\(\boldsymbol{\theta}\)</span>. As starting value you may for example us the ML estimate <span class="math inline">\(\hat{\theta}\)</span>, in that case you need not worry about convergence to the stationary distribution (can be assumed immediate).</p>
+<p>Implement a Metropolis-Hastings algorithm (c.f. code in <a href="https://rawcdn.githack.com/mskoldSU/MT5003_HT19/e87ebfc8d70a4929df28e621e568cd6db1ffa67a/Slides/Kap6.html#22">slide 22</a> and the textbook 8.4) that given a starting value, simulates from the posterior distribution of <span class="math inline">\(\boldsymbol{\theta}\)</span>. As starting value you may for example us the ML estimate <span class="math inline">\(\hat{\theta}\)</span>, in that case you need not worry about convergence to the stationary distribution (can be assumed immediate).</p>
 <p>Use the algorithm to sample (at least) 10000 vectors <span class="math inline">\(\boldsymbol{\theta}\)</span> from the posterior. A suitable choice of <code>sigma</code> (the step-size) is the vector of ML-estimator standard errors.</p>
 <ul>
-<li><p>Plot the draws for each parameter (corresponding to <a href="https://rawcdn.githack.com/mskoldSU/MT5003_HT19/master/Slides/Kap6.html#23">slide 23</a>)</p></li>
-<li><p>Plot histograms of the parameter posteriors (corresponding to <a href="https://rawcdn.githack.com/mskoldSU/MT5003_HT19/master/Slides/Kap6.html#24">slide 24</a>).</p></li>
+<li><p>Plot the draws for each parameter (corresponding to <a href="https://rawcdn.githack.com/mskoldSU/MT5003_HT19/e87ebfc8d70a4929df28e621e568cd6db1ffa67a/Slides/Kap6.html#23">slide 23</a>)</p></li>
+<li><p>Plot histograms of the parameter posteriors (corresponding to <a href="https://rawcdn.githack.com/mskoldSU/MT5003_HT19/e87ebfc8d70a4929df28e621e568cd6db1ffa67a/Slides/Kap6.html">slide 24</a>).</p></li>
 <li><p>Use the samples to approximate posterior means and 95% credibility intervals (using ´quantile´) for the parameters. Compare with the results of the frequentist analysis (as a check, the results should be similar).</p></li>
 <li><p>Let <span class="math inline">\(Y^{*}\)</span> denote the result of a future test with explanatory variables <span class="math inline">\(x^{*}\)</span>. Then we can write the probability of a pass as <span class="math inline">\(P(Y^{*}=1|y)=E(p(x^{*})|y)\)</span>. Use this to approximate <span class="math inline">\(P(Y^{*}=1|y)\)</span> when <span class="math inline">\(x^{*}\)</span> corresponds to a privately educated subject of your own sex and age.</p></li>
 </ul>
