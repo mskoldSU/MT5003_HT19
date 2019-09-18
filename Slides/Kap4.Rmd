@@ -1,0 +1,297 @@
+---
+title: "Statistisk inferensteori <br> Frekventistisk likelihoodteori <br> (H & B, Kapitel 4)"
+author: "Martin Sköld"
+output:
+  ioslides_presentation:
+    logo: SU_logo_CMYK.png
+    incremental: TRUE
+    css: slides.css
+---
+
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = FALSE)
+handout <- FALSE
+```
+```{r, echo = handout}
+# Data och förberedelse
+
+set.seed(1) # För att kunna reproducera
+
+# Luftkonditionering, tider mellan fel (från Cox, D.R. and Snell, E.J. (1981))
+ac <- c(90, 10, 60, 186, 61, 49, 14, 24, 56, 20, 79, 84, 44, 59, 29, 118, 25, 156, 310, 76, 26, 44, 23, 62, 130, 208, 70, 101)
+
+```
+
+```{r, echo = handout}
+## Funktioner
+
+# Exponentiallikelihood
+L.exp <- Vectorize( # Möjliggör elementvis beräkning i theta
+  function(theta, data){
+    # Bestämmer likelihood givet en vektor observationer från Exponential(theta)
+    # Argument:
+    #     theta: parametervärde intensitet (eventuellt vektor)
+    #     data: observationsvektor
+    # Utdata:
+    #     Likelihoodfunktionens värden i theta
+    #
+    L.out <- prod(dexp(data, rate = theta))
+    return(L.out)
+  }
+  , vectorize.args = "theta")
+l.exp <- Vectorize( # Möjliggör elementvis beräkning i theta
+  function(theta, data){
+    # Bestämmer log-likelihood givet en vektor observationer från Exponential(theta)
+    # Argument:
+    #     theta: parametervärde intensitet (eventuellt vektor)
+    #     data: observationsvektor
+    # Utdata:
+    #     Log-ikelihoodfunktionens värden i theta
+    #
+    l.out <- sum(log(dexp(data, rate = theta)))
+    return(l.out)
+  }
+  , vectorize.args = "theta")
+# Score-funktion för exponentiallikelihood
+S.exp <- Vectorize(
+  function(theta, data){
+    # Bestämmer scorefunktion givet en vektor observationer från Exponential(theta)
+    # Argument:
+    #     theta: parametervärde intensitet (eventuellt vektor)
+    #     data: observationsvektor
+    # Utdata:
+    #     Scorefunktionens värden i theta
+    #
+    n <- length(data)
+    S.out <- n / theta - sum(data)
+    return(S.out)
+  }
+  , vectorize.args = "theta")
+# Fisherinformation för exponentiallikelihood
+I.exp <- Vectorize(
+  function(theta, data){
+    # Bestämmer Fisherinformation givet en vektor observationer från Exponential(theta)
+    # Argument:
+    #     theta: parametervärde intensitet (eventuellt vektor)
+    #     data: observationsvektor
+    # Utdata:
+    #     Fisherinformationens värden i theta
+    #
+    n <- length(data)
+    I.out <- n / theta^2
+    return(I.out)
+  }
+  , vectorize.args = "theta")
+
+```
+
+
+# Likelihoodfunktionens statistiska egenskaper
+
+## Fishers regularitetsvillkor
+
+<div class="boxed">
+**Definition:** (H & B, def. 4.1). En statistisk modell $\mathcal{P}$ säges uppfylla Fishers regularitetsvillkor om:
+
+- $\Theta$ är ett öppet intervall,
+- stödet hos $x\mapsto p(x|\theta)$ beror inte på $\theta$,
+- $\theta_1\neq \theta_2\Rightarrow$ $p(\cdot|\theta_1)\neq p(\cdot|\theta_2)$ (identifierbarhet)
+- $L(\theta)$ är två gånger kontinuerligt differentierbar för alla $x\in\mathcal{T}$,
+- $\frac{d^2}{d\theta^2}\int p(x|\theta)\,dx=\int \frac{d^2}{d\theta^2}p(x|\theta)\,dx$ för alla 
+  $\theta\in\Theta$.
+  
+</div>
+
+## Förväntad Fisherinformation
+
+<div class="boxed">
+**Definition:** (H & B, def. 4.2). De förväntade Fisherinformationen hos en modell $\mathcal{P}$ är
+$$
+J(\theta)=E_\theta(I(\theta;X)), \theta\in\Theta,
+$$
+där $I(\theta;x)$ är Fisherinformationen givet ett observerat stickprov $x$.
+</div>
+
+## Egenskaper hos scorefunktion
+
+<div class="boxed">
+**Sats:** (H & B, result 4.1). Under Fishers regularitetsvillkor gäller att
+$$
+E_\theta(S(\theta;X))=0, \theta\in\Theta,
+$$
+och
+$$
+Var_\theta(S(\theta;X))=J(\theta), \theta\in\Theta,
+$$
+där $S(\theta;x)$ är scorefunktionen givet ett observerat stickprov $x$.
+</div>
+
+## Scorestatistikan
+
+<div class="boxed">
+**Sats:** Låt $X_{1:n}=(X_1,\ldots,X_n)\sim P_\theta^n$ vara en sekvens oberoende likafördelade stokastiska variabler. Då gäller under Fishers regularitetsvillkor att
+$$
+\frac{S(\theta; X_{1:n})^2}{J(\theta)}\rightarrow Z\sim \chi^2(1)
+$$
+ och 
+$$
+\frac{S(\theta; X_{1:n})^2}{I(\theta; X_{1:n})}\rightarrow Z\sim \chi^2(1)
+$$
+med konvergens i fördelning då $n\rightarrow\infty$.
+</div>
+
+# ML-skattarens asymptotik
+
+## Harald Cramér (1893-1985)
+
+<div class="columns-2">
+```{r, out.width = "300px"}
+knitr::include_graphics("https://upload.wikimedia.org/wikipedia/commons/thumb/c/ce/Harald_Cram%C3%A9r.jpeg/250px-Harald_Cram%C3%A9r.jpeg")
+```
+
+```{r, out.width = "300px"}
+knitr::include_graphics("https://pictures.abebooks.com/LELIVRE/md/md16512436100.jpg")
+```
+</div>
+
+## Cramér-Raos olikhet (informationsolikheten)
+
+<div class="boxed">
+**Sats:** (H & B, result 4.8) Låt $T=h(X)$, $X\sim P_\theta$, vara en väntevärdesriktig skatttare av $\theta$. Då gäller under Fishers regularitetsvillkor att
+$$
+Var_\theta(T)\geq \frac{1}{J(\theta)}.
+$$
+</div>
+
+<div class="boxed">
+**Definition:** En sekvens skattare, $T_n$, säges vara effektiv om
+$$
+\sqrt{J_n(\theta)}(T_n-\theta)\rightarrow Z\sim N(0,1)
+$$
+i fördelning då $n\rightarrow\infty$.
+</div>
+
+## ML-skattarens asymptotiska fördelning
+
+<div class="boxed">
+**Sats:** (H & B, result 4.10) Låt $\hat{\theta}_n$ vara en konsistent sekvens av ML-skattare av $\theta$. Då gäller under Fishers regularitetsvillkor att
+$$
+\sqrt{J_n(\theta)}(\hat{\theta}_n-\theta)\rightarrow Z\sim N(0,1),
+$$
+d.v.s. ML-skattaren är effektiv.
+</div>
+
+## Likelihood-kvot statistikan
+
+<div class="boxed">
+**Definition:** Likelihood-kvot statistikan är
+$$
+T_L(\theta)=-2\tilde{l}(\theta)=-2(l(\theta)-l(\hat{\theta}))
+$$
+med en asymptotisk $\chi^2(1)$-fördelning då $X_{1:n}\sim P_\theta^n$.
+</div>
+
+## Livslängder: Wald och Likelihood-kvot statistikan
+
+```{r, echo = handout}
+theta <- seq(0, 0.03, length.out = 1000)
+theta.hat <- 1 / mean(ac)
+plot(theta, -2 * (l.exp(theta, ac) - l.exp(theta.hat, ac)), lwd = 2, type = "l",
+     xlab = expression(theta), ylab = "",
+     ylim = c(0, 8))
+abline(h = 0)
+lines(theta, (theta.hat - theta)^2 * I.exp(theta.hat, ac), lwd = 2, col = "blue")
+text(x = .005, y = 6, labels = expression(T[W](theta)^2), col = "blue")
+text(x = .009, y = 6, labels = expression(T[L](theta)))
+
+```
+
+
+## Livslängder: Konfidensintervall med Score-statistikan
+
+```{r, echo=handout}
+plot(theta, S.exp(theta, ac) / sqrt(I.exp(theta, ac)), type = "l", lwd = 2,
+     xlab = expression(theta), ylab = expression(T[S](theta)))
+gamma <- 0.95
+abline(h = 0)
+abline(h = qnorm(c((gamma+1)/2, (1-gamma)/2)), lty = 3)
+
+```
+
+## Livslängder: Konfidensintervall med Likelihood-kvot statistikan
+
+```{r, echo = handout}
+theta.hat <- 1 / mean(ac)
+par(mfrow = c(1, 2))
+plot(theta, -2 * (l.exp(theta, ac) - l.exp(theta.hat, ac)), lwd = 2, type = "l",
+     xlab = expression(theta), ylab = expression(T[L] (theta)),
+     ylim = c(0, 8))
+abline(h = 0)
+abline(h = qchisq(gamma, df = 1), lty = 3)
+plot(theta, L.exp(theta, ac) / L.exp(theta.hat, ac),  lwd = 2, type = "l",
+     xlab = expression(theta), ylab = expression(tilde(L)(theta)))
+abline(h = exp(-qchisq(gamma, df = 1) / 2), lty = 3)
+```
+
+## Livslängder: Konfidensintervall med Likelihood-kvot statistikan
+```{r, echo = TRUE}
+f <- function(theta, data){
+  theta.hat <- 1 / mean(data)
+  f.out <- -2 * (l.exp(theta, ac) - l.exp(theta.hat, ac)) - qchisq(0.95, df = 1)
+  return(f.out)
+}
+uniroot(f, interval = c(0, theta.hat), data = ac)$root
+uniroot(f, interval = c(theta.hat, 0.02), data = ac)$root
+```
+
+
+## Tester
+
+```{r, echo = TRUE}
+theta0 <- 0.01
+TS2 <- S.exp(theta0, ac)^2 / I.exp(theta0, ac)
+1-pchisq(TS2, 1)
+```
+```{r, echo = TRUE}
+TW2 <- (theta.hat - theta0)^2 * I.exp(theta0, ac)
+1-pchisq(TW2, 1)
+```
+```{r, echo = TRUE}
+TL <- -2 * (l.exp(theta0, ac) - l.exp(theta.hat, ac))
+1-pchisq(TL, 1)
+```
+
+
+## Jämförelse Wald, Score och Likelihood-kvot som test-statistikor
+
+```{r, echo = handout}
+theta0 <- 0.01
+plot(theta, l.exp(theta, ac), type = "l",
+     xlab="", ylab="", ylim = c(-152, -150), xlim = c(0.005, 0.02),
+     axes = FALSE)
+mtext(c(expression(hat(theta)), expression(theta[0])),
+      at=c(theta.hat, theta0), side=1)
+mtext(c(expression(l(hat(theta))), expression(l(theta[0]))),
+      at=c(l.exp(theta.hat, ac), l.exp(theta0, ac)), side=2)
+abline(v=c(theta0, theta.hat),
+       h=c(l.exp(theta0, ac),l.exp(theta.hat, ac)), lty=2)
+abline(l.exp(theta0, ac)-S.exp(theta0, ac)*theta0,S.exp(theta0, ac),lty=2)
+```
+
+## Utan asymptotik...
+
+```{r, echo = TRUE}
+N <- 10000
+TS2.mc <- numeric(N); TW2.mc <- numeric(N); TL.mc <- numeric(N)
+for (i in 1:N){
+    x <- rexp(28, rate = theta0)
+    theta.hat.mc <- 1 / mean(x)
+    TS2.mc[i] <- S.exp(theta0, x)^2 / I.exp(theta0, x)
+    TW2.mc[i] <- (theta.hat.mc - theta0)^2 * I.exp(theta0, x)
+    TL.mc[i] <- -2 * (l.exp(theta0, x) - l.exp(theta.hat.mc, x))
+}
+c(mean(TS2.mc > TS2), mean(TW2.mc > TW2), mean(TL.mc > TL))
+
+```
+
