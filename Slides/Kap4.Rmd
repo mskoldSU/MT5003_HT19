@@ -172,10 +172,17 @@ $$
 i fördelning då $n\rightarrow\infty$.
 </div>
 
+## ML-skattaren är konsistent
+
+<div class="boxed">
+**Sats:** (H & B, result 4.9) Låt $X_1, \ldots, X_n$ vara  $n$ oberoende likafördelade observationer från $P_\theta$. Då finns en konsistent sekvens av ML-skattare.
+</div>
+
+
 ## ML-skattarens asymptotiska fördelning
 
 <div class="boxed">
-**Sats:** (H & B, result 4.10) Låt $\hat{\theta}_n$ vara en konsistent sekvens av ML-skattare av $\theta$. Då gäller under Fishers regularitetsvillkor att
+**Sats:** (H & B, result 4.10) Låt $\hat{\theta}_n$ vara en konsistent sekvens av ML-skattare av $\theta$ baserad på $n$ oberoende likafördelade observationer från $P_\theta$. Då gäller under Fishers regularitetsvillkor att
 $$
 \sqrt{J_n(\theta)}(\hat{\theta}_n-\theta)\rightarrow Z\sim N(0,1),
 $$
