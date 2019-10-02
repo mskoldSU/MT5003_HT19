@@ -1,0 +1,145 @@
+---
+title: "Statistisk inferensteori <br> "
+author: "Martin Sköld"
+output:
+  ioslides_presentation:
+    logo: SU_logo_CMYK.png
+    incremental: false
+    # css: slides.css
+---
+
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = FALSE)
+handout <- FALSE
+library(MASS)
+```
+
+## Tillräcklighet
+
+En stickprovsvariabel $T=h(X)$ är tillräcklig för $\theta$ om fördelningen för $X|T=t$ ej beror på $\theta$ för något $t$.
+
+*Faktoriseringskriteriet:* $T=h(X)$ är tillräcklig för $\theta$ om och endast om $p_X(x|\theta)=g_1(h(x),\theta)g_2(x)$.
+
+
+## Likelihoodfunktionen
+
+- Likelihoodfunktionen $L(\theta)$.
+
+- Log-likelihoodfunktionen $l(\theta)=\log L(\theta)$.
+
+- Score-funktionen $S(\theta)=l'(\theta)$.
+
+- Fisher-informationen $I(\theta)=-S'(\theta)$.
+
+## Maximum-likelihood
+
+
+- Maximum-likelihood skattaren $$
+\hat{\theta}=\{\theta; L(\theta)=\max_t L(t)\}\\=\{\theta; l(\theta)=\max_t l(t)\}\\=\{\theta; S(\theta)=0\}
+$$
+
+- Relativa likelihoodfunktionen $\tilde{L}(\theta)=L(\theta)/L(\hat{\theta})$.
+
+- Observerad Fisherinformation $I(\hat{\theta})$.
+
+## Fishers regularitetsvillkor
+
+- $\Theta$ är ett öppet intervall,
+- stödet hos $x\mapsto p(x|\theta)$ beror inte på $\theta$,
+- $\theta_1\neq \theta_2\Rightarrow$ $p(\cdot|\theta_1)\neq p(\cdot|\theta_2)$ (identifierbarhet)
+- $L(\theta)$ är två gånger kontinuerligt differentierbar för alla $x\in\mathcal{T}$,
+- $\frac{d^2}{d\theta^2}\int p(x|\theta)\,dx=\int \frac{d^2}{d\theta^2}p(x|\theta)\,dx$ för alla 
+  $\theta\in\Theta$.
+
+## Stokastiska egenskaper under regularitet
+
+*Score:*
+
+- $E_\theta(S(\theta;X))=0$
+
+- $Var_\theta(S(\theta;X))=E_\theta(I(\theta;X))=J(\theta)$ (förväntad Fisherinformation). 
+
+*ML-skattare:*
+
+- Om $X_{1:n}=(X_1,\ldots, X_n)$ oberoende likafördelade så
+
+$$
+\sqrt{n}(\hat{\theta}(X_{1:n})-\theta)\rightarrow Z\sim N(0, J_1(\theta)^{-1})
+$$
+
+## Standardfel, en skattning av en skattares standardavvikelse
+
+*Med ML-skattarens asymptotik:*
+
+Eftersom $Var(\hat{\theta}(X_{1:n}))\approx (nJ_1(\theta))^{-1}=J(\theta)^{-1}$ får vi 
+
+- $se(\hat{\theta})=J(\hat{\theta})^{-1/2}$ alternativt $se(\hat{\theta})=I(\hat{\theta})^{-1/2}$.
+
+*I kombination med Delta-metoden:*
+
+Med $\phi=g(\theta)$ och $\hat{\phi}=g(\hat{\theta})$ får vi 
+
+- $se(\hat{\phi})=se(\hat{\theta})|g'(\hat{\theta})|$.
+
+## Standardfel, en skattning av en skattares standardavvikelse
+
+*Med Bootstrap:*
+
+Vi har observerat $x$, realisering av $X=(X_1,\ldots,X_n)\sim P_{\theta_0}$.
+
+1. Dra $N$ nya stickprov från $P_{\hat{\theta}}$, $x^{(1)},\ldots,x^{(N)}$.
+2. För varje nytt stickprov $x^{(i)}$, bestäm $\hat{\theta}_i$.
+3. Approximera $se(\hat{\theta})$ med stickprovsstandardavvikelse av $(\hat{\theta}_1,\ldots,\hat{\theta}_N)$.
+
+
+## Pivåvariabler
+
+En funktion $g(X,\theta)$ vars fördelning ej beror på $\theta$ då $X\sim P_\theta$.
+
+**Tre asymptotiska standardpivåer**:
+
+- *Wald-statistikan:* $T_W=(\hat{\theta}-\theta)/se(\hat{\theta})\approx N(0,1)$.
+
+- *Score-statistikan:* $T_S=S(\theta)/I(\theta)^{1/2}$ alternativt $T_S=S(\theta)/J(\theta)^{1/2}\approx N(0,1)$.
+
+- *Likelihood-kvot statistikan:* $T_L=-2\tilde{l}=-2(l(\theta)-l(\hat{\theta}))\approx \chi^2(1)$.
+
+## Konfidensintervall med pivåvariabler
+
+Vi kan bestämma $q_l$ och $q_u$ så att $$P_\theta(q_l\leq g(X,\theta)\leq q_u)=1-\alpha,$$ konfidensintervall fås av $\{\theta; q_l\leq g(x,\theta)\leq q_u\}$.
+
+- *Wald:* Lös $\{\theta; -\lambda_{\alpha/2}\leq T_W(\theta) \leq \lambda_{\alpha/2} \}$.
+
+- *Score:* Lös $\{\theta; -\lambda_{\alpha/2}\leq T_S(\theta) \leq \lambda_{\alpha/2} \}$.
+
+- *Likelihoodkvot:* Lös $\{\theta; T_L(\theta)\leq \lambda_{\alpha/2}^2\}$.
+
+
+Där $P(|Z|\leq \lambda_{\alpha/2})=P(Z^2\leq \lambda_{\alpha/2}^2)=1-\alpha$, $Z\sim N(0,1)$, $Z^2\sim \chi^2(1)$.
+
+## Tester (enkel noll-hypotes)
+
+$H_0:\theta=\theta_0$ med testvariabel $T=T(\theta_0)$.
+
+1. Bestäm observerade värdet $t$ av $T$.
+
+2. Ett $P$-värde ges av $P_{\theta_0}(T\geq t)$.
+
+3. Förkasta $H_0$ om $P$-värdet är mindre än signifikansnivån $\alpha$.
+
+Om $T$ är $T_W^2$, $T_S^2$ eller $T_L$ blir $P_{\theta_0}(T\geq t)\approx 1-F(t)$, där $F$ är fördelningsfunktionen för $\chi^2(1)$.
+
+## Bayes
+
+$$
+p(\theta|x)\propto p(x|\theta)p(\theta)
+$$
+
+## Apriorifördelningar
+
+*Konjungerande familj:* En familj $\mathcal{F}$ av fördelningar är konjungerande med avseende på $p(x|\theta)$ om $p(\theta)\in\mathcal{F}\Rightarrow p(\theta|x)\in\mathcal{F}$.
+
+*Jeffreys apriorifördelning:* $p(\theta)\propto \sqrt{J(\theta)}$.
+
+
