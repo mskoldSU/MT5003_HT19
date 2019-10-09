@@ -6,7 +6,7 @@ output: html_document
 ---
 
 ```{r setup, include=FALSE}
-knitr::opts_chunk$set(echo = TRUE)
+knitr::opts_chunk$set(echo = TRUE, warning = FALSE)
 ```
 
 ```{r, echo = FALSE, message=FALSE}
@@ -15,6 +15,7 @@ library(tidyverse)
 
 # Byt https mot aktuellt schemalänk nedan
 datum <- unique(fromJSON("https://cloud.timeedit.net/su/web/stud1/ri177455X45Z06Q5Z96g6Y00y5016Y39Q07gQY6Q53767.json", flatten = TRUE)$reservations) %>% 
+    filter(str_detect(columns, "Föreläsning")) %>% 
     mutate(veckodag = weekdays(as.Date(startdate))) %>% 
     select(veckodag, startdate) %>% 
     distinct()
@@ -132,17 +133,17 @@ Recommended exercises: Ö: 10. 7.3: 2.
 
 **`r datum[13,]`**
 
-*Regularisation, shrinkage and smoothing.*  
-Literature:  
-Recommended exercises:  
+*Regularisation, shrinkage and model evaluation.*  
+Literature:  ISL Chapter 2.2-2.2.2, 6.2
+Recommended exercises:  ISL 2.4:5 and 6.8:2a-b, 3, 4.
 
 ***
 
 **`r datum[14,]`**
 
-*Regularisation, shrinkage and smoothing.*  
-Literature:  
-Recommended exercises:  
+*Regularisation, shrinkage and model evaluation.*  
+Literature:  ISL Chapter 2.2-2.2.2, 6.2
+Recommended exercises:  ISL 2.4:5 and 6.8:2a-b, 3, 4.
 
 ***
 
